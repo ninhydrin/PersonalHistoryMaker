@@ -7,8 +7,6 @@ import json
 import MeCab
 import CCAA
 
-
-
 twit_url = "https://api.twitter.com/1.1/statuses/update.json"
 home_url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
 url = "https://api.twitter.com/1.1/frends/ids=%s.json"
@@ -33,6 +31,7 @@ class Twitter:
 
     friends = "https://api.twitter.com/1.1/friends/ids.json?"
     followes = "https://api.twitter.com/1.1/followers/ids.json?"
+
     users = "https://api.twitter.com/1.1/users/"
     stop_list = ("RT", "http")
 
@@ -62,23 +61,7 @@ class Twitter:
 
     def get_user_info(self, entity=False):
         return self.user_info(self.target_id, entity)
-
-    def get_follow_list(self, target_id, to_string=True, count=5000):
-        url = self.friends
-        query = "user_id={}&stringify_ids={}&count={}".format(
-            target_id, to_string, count)
-        url += query
-        req = self.__get_method(url)
-        return req
-
-    def get_follower(self, toSt=True, count=5000):
-        url = self.followes
-        query = "user_id={}&stringify_ids={}&count={}".format(
-            self.target_id, toSt, count)
-        url += query
-        req = self.__get_method(url)
-        return req
-
+        
     def get_follow_exchanger(self):
         follow = self.get_follow()
         follower = self.get_follower()
@@ -88,6 +71,9 @@ class Twitter:
 
     def target_follow_list(self, to_string=True, count=5000):
         return self.get_follow_list(self.target_id, to_string, count)
+
+    def target_follower_list(self, to_string=True, count=5000):
+        return self.get_followe_list(self.target_id, to_string, count)
 
     def get_twit_list(self, contain_rep=0, contain_rt=0, count=200, max_id=None, since_id=None):
         contain_rep = 0 if contain_rep else 1
@@ -151,6 +137,24 @@ class Twitter:
         return req
 
     @classmethod
+    def get_follow_list(cls, target_id, to_string=True, count=5000):
+        url = cls.friends
+        query = "user_id={}&stringify_ids={}&count={}".format(
+            target_id, to_string, count)
+        url += query
+        req = cls.__get_method(url)
+        return req
+
+    @classmethod
+    def get_followe_list(cls, target_id, to_string=True, count=5000):
+        url = cls.followes
+        query = "user_id={}&stringify_ids={}&count={}".format(
+            target_id, to_string, count)
+        url += query
+        req = cls.__get_method(url)
+        return req
+
+    @classmethod
     def twit_post(cls, content, ids=None):
         url = twit_url
         params = {"status": content}
@@ -158,3 +162,4 @@ class Twitter:
             url += "?in_reply_to_status_id="+ids
         req = cls.twitter_oauth.post(url, params=params)
         return req if req.status_code == 200 else False
+
