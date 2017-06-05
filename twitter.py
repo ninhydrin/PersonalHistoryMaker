@@ -4,17 +4,7 @@ from requests_oauthlib import OAuth1Session
 from requests.exceptions import ConnectionError, ReadTimeout#, SSLError
 import json
 
-import MeCab
 import CCAA
-
-twit_url = "https://api.twitter.com/1.1/statuses/update.json"
-home_url = "https://api.twitter.com/1.1/statuses/home_timeline.json"
-url = "https://api.twitter.com/1.1/frends/ids=%s.json"
-myFollower = "https://api.twitter.com/1.1/friends/list.json?count=200"
-statuses = "https://api.twitter.com/1.1/statuses/user_timeline.json?"
-favorites = "https://api.twitter.com/1.1/favorites/"
-friends = "https://api.twitter.com/1.1/friends/ids.json?"
-users = "https://api.twitter.com/1.1/users/"
 
 target = CCAA.target
 
@@ -61,10 +51,10 @@ class Twitter:
 
     def get_user_info(self, entity=False):
         return self.user_info(self.target_id, entity)
-        
+
     def get_follow_exchanger(self):
-        follow = self.get_follow()
-        follower = self.get_follower()
+        follow = self.target_follow_list()
+        follower = self.target_follower_list()
         if not follow or not follower:
             return []
         return list(set(follow["ids"]).intersection(set(follower["ids"])))
@@ -75,14 +65,16 @@ class Twitter:
     def target_follower_list(self, to_string=True, count=5000):
         return self.get_followe_list(self.target_id, to_string, count)
 
-    def get_twit_list(self, contain_rep=0, contain_rt=0, count=200, max_id=None, since_id=None):
-        contain_rep = 0 if contain_rep else 1
-        url = self.statuses + "user_id={}&count={}&exclude_replies={}&include_rts={}".format(self.target_id, count, contain_rep, contain_rt)
+    def get_twit(self, exclude_rep=0, include_rt=0, count=200, max_id=None, since_id=None):
+        url = self.statuses + "user_id={}&count={}&exclude_replies={}&include_rts={}".format(self.target_id, count, exclude_rep, include_rt)
         if max_id:
             url += "&max_id={}".format(max_id)  # max_id以下を取得
         if since_id:
             url += "&since_id={}".format(since_id)  # since_idより上を取得
-        req = self.__get_method(url)
+        return self.__get_method(url)
+
+    def get_twit_list(self, exclude_rep=0, include_rt=0, count=200, max_id=None, since_id=None):
+        req = self.get_twit(exclude_rep, include_rt, count=200, max_id=None, since_id=None):
         if req is None:
             return []
         return [{x: twit[x] for x in twit
@@ -121,7 +113,7 @@ class Twitter:
     @classmethod
     def word_search(cls, text):
         url = "https://api.twitter.com/1.1/search/tweets.json?q={}".format(text)
-        req=cls.__get_method(url)
+        req = cls.__get_method(url)
         return req
 
     @classmethod
@@ -132,7 +124,7 @@ class Twitter:
 
     @classmethod
     def user_info(cls, ids, entity=False):
-        url = users+"show.json?user_id={}&include_entities={}".format(ids, entity)
+        url = cls.users+"show.json?user_id={}&include_entities={}".format(ids, entity)
         req = cls.__get_method(url)
         return req
 
@@ -156,7 +148,7 @@ class Twitter:
 
     @classmethod
     def twit_post(cls, content, ids=None):
-        url = twit_url
+        url = cls.twit_url
         params = {"status": content}
         if ids:
             url += "?in_reply_to_status_id="+ids
