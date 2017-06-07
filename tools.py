@@ -1,6 +1,4 @@
 import pickle
-import json
-
 import MeCab
 import numpy as np
 
@@ -18,11 +16,11 @@ class TextTools:
         返値：str
         """
         node = cls.tagger.parseToNode(text).next
-        result=""
+        result = ""
         while node:
-            word=node.surface
-            print(word,word.isalpha())
-            #if word.isalpha() or "/" in word or "%" in word or "[]" in word or "「" in word or "」" in word:
+            word = node.surface
+            print(word, word.isalpha())
+            # if word.isalpha() or "/" in word or "%" in word or "[]" in word or "「" in word or "」" in word:
             #    node = node.next
             #    continue
             word = node.surface
@@ -52,7 +50,7 @@ class TextTools:
         """
         text = cls.conect_timeline(pickle.load(open(tweet_path, "rb")))
         node = cls.tagger.parseToNode(text)
-        result=[]
+        result = []
         while node:
             word = node.surface
             feature = node.feature.split(',')
@@ -63,46 +61,9 @@ class TextTools:
                 result.append(word)
 
         dataset = np.array([vocab[word][0] for word in result], dtype=np.int32)
-        print ('corpus length:{} vocab size:{}'.format(len(result), len(vocab)))
+        print('corpus length:{} vocab:{}'.format(len(result), len(vocab)))
         return (dataset, result, vocab)
-    """
-    def get_twit_list(self, exclude_rep=0, include_rt=0, count=200, max_id=None, since_id=None):
-        req = self.get_twit(exclude_rep, include_rt, count=200, max_id=None, since_id=None):
-        if req is None:
-            return []
-        return [{x: twit[x] for x in twit
-                 if x == "text"or x == "id_str" or x == "created_at"}
-                for twit in req]
 
-    def save_timeline(self, save=1, rep=0):
-        max_id = None
-        twit_count = 0
-        api_use_count = 0
-        old_timeline = []
-        timeline = []
-        since_id = 0
-        if os.path.exists(self.data_path):
-            old_timeline = json.load(open(self.data_path))
-            since_id = old_timeline[0]["id_str"]
-        else:
-            print("user id ", self.target_id, "is first")
-
-        for i in range(40):
-            api_use_count += 1
-            new_timeline = self.get_twit_list(contain_rep=rep, max_id=max_id, since_id=since_id)
-            if api_use_count > 1:
-                new_timeline = new_timeline[1:]
-            if len(new_timeline) <= 0:
-                break
-            twit_count += len(new_timeline)
-            max_id = new_timeline[-1]["id_str"]
-            timeline += new_timeline
-        timeline += old_timeline
-        if twit_count and save:
-            json.dump(timeline, open(self.data_path, "w"), sort_keys=True, indent=4)
-        print("added:{} tweet  api: {} used".format(twit_count, api_use_count))
-        return api_use_count
-    """
 
 def test():
     text = u"高椅くんは、勉強しなかったので、点数がとれず、悔しがっていたのをいま思い出すと、残念だ。"
