@@ -1,5 +1,4 @@
 import twitter
-import tools
 import time
 import os
 import random
@@ -7,9 +6,9 @@ import json
 import CCAA
 
 
-def random_picker(ids=CCAA.target, update_csv=False, path="data/excahnge.json"):
+def random_picker(ids=CCAA.target, path="data/excahnge.json"):
     target = twitter.User(ids)
-    if update_csv or not os.path.exists(path):
+    if not os.path.exists(path):
         exchange_list = target.get_follow_exchanger()
         with open(path, "w") as f:
             save_ob = [{"id_str": i} for i in exchange_list]
@@ -21,18 +20,18 @@ def random_picker(ids=CCAA.target, update_csv=False, path="data/excahnge.json"):
     random.shuffle(exchange_list)
     pick = []
     for i in exchange_list[:8]:
-        user = tools.Twitter(i)
-        i = user.get_user_info()
+        user = twitter.User(i)
+        i = user.user_info()
         if i is not None:
             ids, name = i["id"], i["name"]
             print(name)
-            pick += user.get_follow_exchanger()
+            pick += user.follow_exchanger()
     random.shuffle(pick)
     count = 0
     start_time = -1
     for ids in pick[:30]:
         print("get ", ids, "'s tweet")
-        user = tools.Twitter(ids)
+        user = twitter.User(ids)
         if start_time == -1:
             count = 0
             start_time = time.time()
@@ -46,3 +45,7 @@ def random_picker(ids=CCAA.target, update_csv=False, path="data/excahnge.json"):
             print("limit!! sleep : ", sleep_time, "s")
             time.sleep(sleep_time)
             start_time = -1
+
+
+if __name__ == "__main__":
+    random_picker()

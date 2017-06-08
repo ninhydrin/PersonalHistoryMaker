@@ -107,11 +107,11 @@ class User:
         self.twitter = Twitter
 
     def user_info(self, entity=False):
-        return self.user_info(self.target_id, entity)
+        return self.twitter.user_info(self.target_id, entity)
 
     def follow_exchanger(self):
-        follow = self.twitter.target_follow_list()
-        follower = self.twitter.target_follower_list()
+        follow = self.follow_list()
+        follower = self.follower_list()
         if not follow or not follower:
             return []
         return list(set(follow["ids"]).intersection(set(follower["ids"])))
@@ -128,7 +128,7 @@ class User:
     def get_twit_list(self, exclude_rep=0, include_rt=0, count=200, max_id=None, since_id=None):
 
         req = self.get_twit(exclude_rep, include_rt, count, max_id, since_id)
-        if req is None:
+        if not req:
             return []
         return [{x: twit[x] for x in twit
                  if x == "text"or x == "id_str" or x == "created_at"}
