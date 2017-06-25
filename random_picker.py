@@ -1,4 +1,4 @@
-import twitter
+from twitter import Twitter, User
 import time
 import os
 import random
@@ -7,44 +7,30 @@ import CCAA
 
 
 def random_picker(ids=CCAA.target, path="data/excahnge.json"):
-    target = twitter.User(ids)
-    if not os.path.exists(path):
-        exchange_list = target.get_follow_exchanger()
-        with open(path, "w") as f:
-            save_ob = [{"id_str": i} for i in exchange_list]
-            json.dump(save_ob, f, sort_keys=True, indent=4)
-    else:
-        with open(path) as f:
-            id_json = json.load(f)
-        exchange_list = [i["id_str"] for i in id_json]
+    target = User(ids)
+    exchange_list = target.follow_exchanger()
     random.shuffle(exchange_list)
-    pick = []
-    for i in exchange_list[:8]:
-        user = twitter.User(i)
-        i = user.user_info()
-        if i is not None:
-            ids, name = i["id"], i["name"]
+    pick = exchange_list.copy()
+    for _ in range(10):
+        user = User(random.sample(set(pick), 1)[0])
+        user_info = user.user_info()
+        if user_info is not None:
+            ids, name = user_info["id"], user_info["name"]
             print(name)
             pick += user.follow_exchanger()
     random.shuffle(pick)
-    count = 0
-    start_time = -1
-    for ids in pick[:30]:
+    for ids in pick[:50]:
         print("get ", ids, "'s tweet")
-        user = twitter.User(ids)
-        if start_time == -1:
-            count = 0
-            start_time = time.time()
-        num = user.save_timeline()
-        count += num
-
-        if count >= 150:
-            sleep_time = 900 - (time.time() - start_time)
-            if sleep_time < 0:
-                sleep_time = 0
+        user = User(ids)
+        if not Twitter.api_use_start:
+            Twitter.api_use_start = time.time()
+        user.save_timeline()
+        if Twitter.api_use_count >= 150:
+            sleep_time = max(0, 900 - (time.time() - Twitter.api_use_start))
             print("limit!! sleep : ", sleep_time, "s")
             time.sleep(sleep_time)
-            start_time = -1
+            Twitter.api_use_start = None
+            Twitter.api_use_count = 0
 
 
 if __name__ == "__main__":
